@@ -31,7 +31,7 @@ void print_progress_bar(int perc) {
 
 int main() {
     std::ofstream fout;
-    fout.open("/Users/lun/Work/cpp/simple_raytracer/test.ppm");
+    fout.open("/Users/lun/Desktop/test.ppm");
     
     if (!fout.is_open()) {
         std::cout << "Can't create file!" << std::endl;
@@ -44,14 +44,15 @@ int main() {
     
     fout <<  "P3\n" << nx << " " << ny << "\n255\n";
     
-    hitable *list[4];
-    list[0] = new sphere(vec3(0, -100.5, -1), 100, new lambertian(vec3(0.8, 0.8, 0.0)));
-    list[1] = new sphere(vec3(0, 0, -1), 0.5, new metal(vec3(0.8, 0.3, 0.3)));
+    hitable *list[5];
+    list[0] = new sphere(vec3(0, -100.5, -1), 100, new lambertian(vec3(0.1, 0.84, 0.5)));
+    list[1] = new sphere(vec3(0, 0, -1), 0.5, new metal(vec3(0.8, 0.3, 0.3), 0.1));
     list[2] = new sphere(vec3(1.1, 0, -1.2), 0.35, new lambertian(vec3(0.8, 0.6, 0.2)));
-    list[3] = new sphere(vec3(-1.2, 0.5, -1), 0.4, new metal(vec3(0.8, 0.8, 0.8)));
+    list[3] = new sphere(vec3(-1.2, 0.5, -1), 0.4, new dielectric(1.5));
+    list[4] = new sphere(vec3(0.7, -0.5, -1.0), 0.2, new dielectric(1.5));
     
     camera cam;
-    hitable *world = new hitable_list(list, 4);
+    hitable *world = new hitable_list(list, 5);
     
     unsigned int iters_for_new_perc = nx * ny * ns / 100;
     unsigned int current_iter = 0;
