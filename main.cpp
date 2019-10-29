@@ -44,11 +44,11 @@ hitable *random_scene() {
             }
         }
     }
-    
+
     list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
     list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
     list[i++] = new sphere(vec3(1, 1, 0), 1.0, new metal(vec3(0.5, 0.5, 0.5), 0.0));
-    
+
     return new hitable_list(list, i);
 }
 
@@ -60,45 +60,45 @@ void print_progress_bar(int perc) {
 int main() {
     std::ofstream fout;
     fout.open("/Users/lun/Desktop/image.ppm");
-    
+
     if (!fout.is_open()) {
         std::cout << "Can't create file!" << std::endl;
         return 1;
     }
-    
-    int nx = 1920;
-    int ny = 1080;
-    int ns = 100;
-    
+
+    int nx = 800;
+    int ny = 600;
+    int ns = 40;
+
     fout <<  "P3\n" << nx << " " << ny << "\n255\n";
 
     hitable *world = random_scene();
-    
-    vec3 lookfrom(13, 4, 10);
+
+    vec3 lookfrom(13, 4, 6);
     vec3 lookat(0, 0, -1);
     float dist_to_focus = (lookat - lookfrom).length();
-    float aperture = 2.0;
+    float aperture = 0.0;
     camera cam(lookfrom, lookat, vec3(0, 1, 0), 20, float(nx)/float(ny), aperture, dist_to_focus);
-    
+
     unsigned int iters_for_new_perc = nx * ny * ns / 100;
     unsigned int current_iter = 0;
     int perc = 0;
     print_progress_bar(perc);
-    
+
     for (int i = ny - 1; i >= 0; --i) {
         for (int j = 0; j < nx; ++j) {
-            
+
             vec3 col(0.0, 0.0, 0.0);
-            
+
             for (int k = 0; k < ns; ++k) {
-                
+
                 current_iter++;
                 if (current_iter >= iters_for_new_perc) {
                     current_iter = 0;
                     perc++;
                     print_progress_bar(perc);
                 }
-                
+
                 float u = float(j + drand48()) / float(nx);
                 float v = float(i + drand48()) / float(ny);
                 ray r = cam.get_ray(u, v);
@@ -113,8 +113,8 @@ int main() {
             fout <<  ir << " " << ig << " " << ib << "\n";
         }
     }
-    
+
     fout.close();
-    
+
     return 0;
 }

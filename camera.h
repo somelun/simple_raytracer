@@ -40,4 +40,4 @@ private:
     vec3 vertical;
     vec3 u, v, w;
     float lens_radius;
-};
+}; 
