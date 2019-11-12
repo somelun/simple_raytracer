@@ -2,7 +2,10 @@
 .DS_Store
 *.ppm
 *.o
+*.sublime-project
+*.sublime-workspace
+*.ppm
 
 #executable
-rtracer
-
+ptracer
+main
