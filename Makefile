@@ -1,9 +1,9 @@
-CC=g++
-CFLAGS=-c -Wall
+CC=clang++
+CFLAGS=-c -Wall -std=c++11
 LDFLAGS=
 SOURCES=main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=rtracer
+EXECUTABLE=ptracer
 
 all: $(SOURCES) $(EXECUTABLE)
 
@@ -15,3 +15,8 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	rm -rf *.o all
+
+.PHONY: rebuild
+rebuild:
+	$(MAKE) clean
+	$(MAKE) all
