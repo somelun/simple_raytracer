@@ -1,12 +1,16 @@
 #pragma once
 
 #include "hitable.h"
-#include "random.h"
 
-class bhv_node : public hitable {
+
+int box_x_compare(const void * a, const void * b);
+int box_y_compare(const void * a, const void * b);
+int box_z_compare(const void * a, const void * b);
+
+class bvh_node : public hitable {
 public:
-    bhv_node() {}
-    bhv_node(hitable** l, int n, frloat time0, float time1);
+    bvh_node() {}
+    bvh_node(hitable** l, int n, float time0, float time1);
 
     virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const override;
     virtual bool bounding_box(float t0, float t1, aabb& box) const override;
@@ -17,14 +21,14 @@ private:
     aabb box;
 };
 
-bhv_node::bhv_node(hitable** l, int n, frloat time0, float time1) {
+bvh_node::bvh_node(hitable** l, int n, float time0, float time1) {
     int axis = int(3 * drand48());
     if (axis == 0) {
-        qsort(l, n, sizeof(hittable *), box_x_compare);
+        qsort(l, n, sizeof(hitable *), box_x_compare);
     } else if (axis == 1) {
-        qsort(l, n, sizeof(hittable *), box_y_compare);
+        qsort(l, n, sizeof(hitable *), box_y_compare);
     } else {
-        qsort(l, n, sizeof(hittable *), box_z_compare);
+        qsort(l, n, sizeof(hitable *), box_z_compare);
     }
 
     if (n == 1) {
@@ -44,11 +48,11 @@ bhv_node::bhv_node(hitable** l, int n, frloat time0, float time1) {
     box = surrounding_box(box_left, box_right);
 }
 
-bool bhv_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-    if (box.hit(t, t_min, t_max)) {
+bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
+    if (box.hit(r, t_min, t_max)) {
         hit_record left_rec, right_rec;
-        bool hit_left = left->hit(t, t_min, t_max, left_rec);
-        bool hit_right = right->hit(t, t_min, t_max, right_rec);
+        bool hit_left = left->hit(r, t_min, t_max, left_rec);
+        bool hit_right = right->hit(r, t_min, t_max, right_rec);
 
         if (hit_left && hit_right) {
             if (left_rec.t < right_rec.t) {
@@ -70,15 +74,15 @@ bool bhv_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) cons
     return false;
 }
 
-bool bhv_node::bounding_box(float t0, float t1, aabb& b) const {
+bool bvh_node::bounding_box(float t0, float t1, aabb& b) const {
     b = box;
     return true;
 }
 
-int box_x_compare (const void * a, const void * b) {
+int box_x_compare(const void * a, const void * b) {
     aabb box_left, box_right;
-    hittable *ah = *(hittable**)a;
-    hittable *bh = *(hittable**)b;
+    hitable *ah = *(hitable**)a;
+    hitable *bh = *(hitable**)b;
 
     if(!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right)) {
         std::cerr << "no bounding box in bvh_node constructor\n";
@@ -91,10 +95,10 @@ int box_x_compare (const void * a, const void * b) {
     }
 }
 
-int box_y_compare (const void * a, const void * b) {
+int box_y_compare(const void * a, const void * b) {
     aabb box_left, box_right;
-    hittable *ah = *(hittable**)a;
-    hittable *bh = *(hittable**)b;
+    hitable *ah = *(hitable**)a;
+    hitable *bh = *(hitable**)b;
 
     if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right)) {
         std::cerr << "no bounding box in bvh_node constructor\n";
@@ -107,10 +111,10 @@ int box_y_compare (const void * a, const void * b) {
     }
 }
 
-int box_z_compare (const void * a, const void * b) {
+int box_z_compare(const void * a, const void * b) {
     aabb box_left, box_right;
-    hittable *ah = *(hittable**)a;
-    hittable *bh = *(hittable**)b;
+    hitable *ah = *(hitable**)a;
+    hitable *bh = *(hitable**)b;
 
     if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right)) {
         std::cerr << "no bounding box in bvh_node constructor\n";
@@ -122,4 +126,3 @@ int box_z_compare (const void * a, const void * b) {
         return 1;
     }
 }
-

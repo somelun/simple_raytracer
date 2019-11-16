@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "material.h"
 #include "moving_sphere.h"
+#include "bhv.h"
 
 #define RENDER_LOG
 #define TIME_PROFILER
