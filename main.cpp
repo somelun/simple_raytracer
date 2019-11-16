@@ -5,10 +5,14 @@
 #include "float.h"
 #include "camera.h"
 #include "material.h"
-
-#include "timer.h"
+#include "moving_sphere.h"
 
 #define RENDER_LOG
+#define TIME_PROFILER
+
+#ifdef TIME_PROFILER
+#include "timer.h"
+#endif
 
 
 vec3 color(const ray& r, hitable *world, int depth) {
@@ -39,7 +43,7 @@ hitable *random_scene() {
             vec3 center(a + 0.9 * drand48(), 0.2, b + 0.9 * drand48());
             if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
                 if (choose_mat < 0.8) { //diffuse
-                    list[i++] = new sphere(center, 0.2, new lambertian(vec3(drand48() * drand48(), drand48() * drand48(), drand48() * drand48())));
+                    list[i++] = new moving_sphere(center, center + vec3(0, 0.5f * drand48(), 0), 0.0f, 1.0f, 0.2f, new lambertian(vec3(drand48() * drand48(), drand48() * drand48(), drand48() * drand48())));
                 } else if (choose_mat < 0.95f) { //metal
                     list[i++] = new sphere(center, 0.2f, new metal(vec3(0.5 * (1 + drand48()), 0.5 * (1 + drand48()), 0.5 * (1 + drand48())),  0.5 * drand48()));
                 } else {    //glass
@@ -84,16 +88,18 @@ int main() {
     unsigned int current_iter = 0;
 #endif
 
+#ifdef TIME_PROFILER
     timer t;
+#endif
 
     for (int i = ny - 1; i >= 0; --i) {
         for (int j = 0; j < nx; ++j) {
 
-            vec3 col(0.0, 0.0, 0.0);
+            vec3 col(0.0f, 0.0f, 0.0f);
 
             for (int k = 0; k < ns; ++k) {
 #ifdef RENDER_LOG
-                fprintf(stderr,"\rRendering: %5.2f%%", Math::clampf(0.0f, 100.00f, (float)(current_iter / iters_for_new_perc) / 100));
+                fprintf(stderr,"\rRendering: %5.2f%%", (float)(current_iter / iters_for_new_perc) / 100);
                 current_iter++;
 #endif
 
@@ -104,9 +110,9 @@ int main() {
             }
             col /= float(ns);
             col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
-            int ir = int(255.99 * col[0]);
-            int ig = int(255.99 * col[1]);
-            int ib = int(255.99 * col[2]);
+            int ir = int(255.99f * col[0]);
+            int ig = int(255.99f * col[1]);
+            int ib = int(255.99f * col[2]);
             fout <<  ir << " " << ig << " " << ib << "\n";
         }
     }
