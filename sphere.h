@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hitable.h"
+#include "hittable.h"
 
-class sphere : public hitable {
+class sphere : public hittable {
 public:
     sphere() {}
     sphere(vec3 cen, float r, material* m) : center(cen), radius(r), mat_ptr(m) {};

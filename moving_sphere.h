@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hitable.h"
+#include "hittable.h"
 
-class moving_sphere : public hitable {
+class moving_sphere : public hittable {
 public:
     moving_sphere() {}
     moving_sphere(vec3 cen0, vec3 cen1, float t0, float t1, float r, material* m) :

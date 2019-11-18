@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "sphere.h"
-#include "hitable_list.h"
+#include "hittable_list.h"
 #include "float.h"
 #include "camera.h"
 #include "material.h"
@@ -17,7 +17,7 @@
 #endif
 
 
-vec3 color(const ray& r, hitable *world, int depth) {
+vec3 color(const ray& r, hittable *world, int depth) {
     hit_record rec;
     if (world->hit(r, 0.001, MAXFLOAT, rec)) {
         ray scattered;
@@ -34,9 +34,9 @@ vec3 color(const ray& r, hitable *world, int depth) {
     }
 }
 
-hitable *random_scene() {
+hittable *random_scene() {
     int n = 50000;
-    hitable **list = new hitable*[n + 1];
+    hittable **list = new hittable*[n + 1];
     texture* checker = new checker_texture(new constant_texture(vec3(0.2f, 0.3f, 0.1f)), new constant_texture(vec3(0.9f, 0.9f, 0.9f)));
     list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(checker));
     int i = 1;
@@ -60,17 +60,25 @@ hitable *random_scene() {
     list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(new constant_texture(vec3(0.4f, 0.2f, 0.1f))));
     list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7f, 0.6f, 0.5f), 0.0f));
 
-    return new hitable_list(list, i);
+    return new hittable_list(list, i);
 }
 
-hitable* two_spheres() {
+hittable* two_spheres() {
     texture* checker = new checker_texture(new constant_texture(vec3(0.2f, 0.3f, 0.1f)), new constant_texture(vec3(0.9f, 0.9f, 0.9f)));
     int n = 50;
-    hitable** list = new hitable*[n + 1];
+    hittable** list = new hittable*[n + 1];
     list[0] = new sphere(vec3(0, -10, 0), 10, new lambertian(checker));
     list[1] = new sphere(vec3(0, 10, 0), 10, new lambertian(checker));
 
-    return new hitable_list(list, 2);
+    return new hittable_list(list, 2);
+}
+
+hittable* two_perlin_spheres() {
+    texture* pertext = new noise_texture();
+    hittable** list = new hittable*[2];
+    list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(pertext));
+    list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
+    return new hittable_list(list, 2);
 }
 
 int main() {
@@ -84,12 +92,13 @@ int main() {
 
     int nx = 640;
     int ny = 480;
-    int ns = 2;
+    int ns = 10;
 
     fout <<  "P3\n" << nx << " " << ny << "\n255\n";
 
-    // hitable *world = random_scene();
-    hitable *world = two_spheres();
+    // hittable *world = random_scene();
+    // hittable *world = two_spheres();
+    hittable *world = two_perlin_spheres();
 
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
@@ -112,6 +121,7 @@ int main() {
             vec3 col(0.0f, 0.0f, 0.0f);
 
             for (int k = 0; k < ns; ++k) {
+
 #ifdef RENDER_LOG
                 fprintf(stderr,"\rRendering: %5.2f%%", (float)(current_iter / iters_for_new_perc) / 100);
                 current_iter++;
@@ -127,6 +137,7 @@ int main() {
             int ir = int(255.99f * col[0]);
             int ig = int(255.99f * col[1]);
             int ib = int(255.99f * col[2]);
+
             fout <<  ir << " " << ig << " " << ib << "\n";
         }
     }
