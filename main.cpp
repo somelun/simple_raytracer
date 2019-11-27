@@ -9,6 +9,9 @@
 #include "bhv.h"
 #include "texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #define RENDER_LOG
 #define TIME_PROFILER
 
@@ -17,7 +20,7 @@
 #endif
 
 
-vec3 color(const ray& r, hittable *world, int depth) {
+vec3 color(const ray& r, hittable* world, int depth) {
     hit_record rec;
     if (world->hit(r, 0.001, MAXFLOAT, rec)) {
         ray scattered;
@@ -34,7 +37,7 @@ vec3 color(const ray& r, hittable *world, int depth) {
     }
 }
 
-hittable *random_scene() {
+hittable* random_scene() {
     int n = 50000;
     hittable **list = new hittable*[n + 1];
     texture* checker = new checker_texture(new constant_texture(vec3(0.2f, 0.3f, 0.1f)), new constant_texture(vec3(0.9f, 0.9f, 0.9f)));
@@ -81,6 +84,14 @@ hittable* two_perlin_spheres() {
     return new hittable_list(list, 2);
 }
 
+hittable* earth() {
+    int nx, ny, nn;
+    unsigned char* tex_data = stbi_load("/Users/lun/Work/cpp/simple_raytracer/earthmap.jpg", &nx, &ny, &nn, 0);
+    material* mat = new lambertian(new image_texture(tex_data, nx, ny));
+
+    return new sphere(vec3(0,0, 0), 2, mat);
+}
+
 int main() {
     std::ofstream fout;
     fout.open("./image.ppm");
@@ -98,7 +109,8 @@ int main() {
 
     // hittable *world = random_scene();
     // hittable *world = two_spheres();
-    hittable *world = two_perlin_spheres();
+    // hittable *world = two_perlin_spheres();
+    hittable *world = earth();
 
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
