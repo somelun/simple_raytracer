@@ -8,6 +8,7 @@
 #include "moving_sphere.h"
 #include "bhv.h"
 #include "texture.h"
+#include "aarect.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -22,18 +23,17 @@
 
 vec3 color(const ray& r, hittable* world, int depth) {
     hit_record rec;
-    if (world->hit(r, 0.001, MAXFLOAT, rec)) {
+    if (world->hit(r, 0.001f, MAXFLOAT, rec)) {
         ray scattered;
         vec3 attenuation;
-        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * color(scattered, world, depth + 1);
-        } else {
-            return vec3(0,0,0);
+        vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+             return emitted + attenuation * color(scattered, world, depth + 1);
+        else {
+            return emitted;
         }
     } else {
-        vec3 unit_direction = unit_vector(r.direction());
-        float t = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+        return vec3(0,0,0);
     }
 }
 
@@ -92,6 +92,36 @@ hittable* earth() {
     return new sphere(vec3(0,0, 0), 2, mat);
 }
 
+hittable *simple_light() {
+    texture *pertext = new noise_texture(4);
+    hittable **list = new hittable*[4];
+    list[0] = new sphere(vec3(0,-1000, 0), 1000, new lambertian(pertext));
+    list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
+    list[2] = new sphere(vec3(0, 7, 0), 2,
+        new diffuse_light(new constant_texture(vec3(4,4,4))));
+    list[3] = new xy_rect(3, 5, 1, 3, -2,
+        new diffuse_light(new constant_texture(vec3(4,4,4))));
+    return new hittable_list(list,4);
+}
+
+hittable *cornell_box() {
+    hittable **list = new hittable*[6];
+    int i = 0;
+    material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+    material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+    material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+    material *light = new diffuse_light(new constant_texture(vec3(15, 15, 15)));
+
+    list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
+    list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+    list[i++] = new xz_rect(213, 343, 227, 332, 554, light);
+    list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
+    list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
+    list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
+
+    return new hittable_list(list,i);
+}
+
 int main() {
     std::ofstream fout;
     fout.open("./image.ppm");
@@ -101,22 +131,25 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    int nx = 640;
-    int ny = 480;
-    int ns = 10;
+    int nx = 800;
+    int ny = 600;
+    int ns = 100;
 
     fout <<  "P3\n" << nx << " " << ny << "\n255\n";
 
     // hittable *world = random_scene();
     // hittable *world = two_spheres();
     // hittable *world = two_perlin_spheres();
-    hittable *world = earth();
+    // hittable *world = earth();
+    hittable *world = cornell_box();
 
-    vec3 lookfrom(13, 2, 3);
-    vec3 lookat(0, 0, 0);
-    float dist_to_focus = 10.0f;//(lookat - lookfrom).length();
+    vec3 lookfrom(278, 278, -800);
+    vec3 lookat(278,278,0);
+    float dist_to_focus = 10.0;
     float aperture = 0.0;
-    camera cam(lookfrom, lookat, vec3(0, 1, 0), 20, float(nx)/float(ny), aperture, dist_to_focus, 0.0f, 1.0f);
+    float vfov = 40.0;
+
+    camera cam(lookfrom, lookat, vec3(0,1,0), vfov, float(nx)/float(ny), aperture, dist_to_focus, 0.0, 1.0);
 
 #ifdef RENDER_LOG
     unsigned iters_for_new_perc = nx * ny * ns / 10000;
